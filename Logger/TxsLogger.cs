@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Serilog;
+using Serilog.Events;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -8,17 +10,44 @@ namespace Logger
     {
         public void InitLogger()
         {
-            throw new NotImplementedException();
+            Log.Logger = new LoggerConfiguration()
+                         .MinimumLevel.Information()
+                         .Enrich.FromLogContext()
+
+
+                         .WriteTo.Logger(l => l.Filter.ByIncludingOnly(e => e.Level == LogEventLevel.Verbose).WriteTo.RollingFile(@"LogsVerboseVerbose-{Date}.log"))
+                         .WriteTo.Logger(l => l.Filter.ByIncludingOnly(e => e.Level == LogEventLevel.Debug).WriteTo.RollingFile(@"LogsDebugDebug-{Date}.log"))
+                         .WriteTo.Logger(l => l.Filter.ByIncludingOnly(e => e.Level == LogEventLevel.Information).WriteTo.RollingFile(@"LogsApiApi-{Date}.log"))
+                         .WriteTo.Logger(l => l.Filter.ByIncludingOnly(e => e.Level == LogEventLevel.Warning).WriteTo.RollingFile(@"LogsWarningWarning-{Date}.log"))
+                         .WriteTo.Logger(l => l.Filter.ByIncludingOnly(e => e.Level == LogEventLevel.Error).WriteTo.RollingFile(@"LogsErrorError-{Date}.log"))
+                         .WriteTo.Logger(l => l.Filter.ByIncludingOnly(e => e.Level == LogEventLevel.Fatal).WriteTo.RollingFile(@"LogsFatalFatal-{Date}.log"))
+
+                         .CreateLogger();
         }
 
         public void LogApi(ApiLogger logger)
         {
-            throw new NotImplementedException();
+            string message = logger.Message;
+            Log.Information(message);
+            if (logger.KeyValuePairs.Count != 0)
+            {
+                foreach (var x in logger.KeyValuePairs)
+                    Log.Information("{key} : {value}", x.Key, x.Value);
+            }
+
+
         }
 
         public void LogError(ErrorLogger logger)
         {
-            throw new NotImplementedException();
+            Log.Error(logger.Message);
+            Log.Error(logger.Ex.StackTrace);
+            if (logger.KeyValuePairs.Count != 0)
+            {
+                foreach (var x in logger.KeyValuePairs)
+                    Log.Information("{key} : {value}", x.Key, x.Value);
+            }
+
         }
 
         public void LogTrace(TraceLogger logger)
